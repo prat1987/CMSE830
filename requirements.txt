@@ -7,3 +7,4 @@ matplotlib==3.5.1
 hiplot==0.1.33
 sklearn==0.0
 scipy==1.8.0
+xgboost==1.6.2
