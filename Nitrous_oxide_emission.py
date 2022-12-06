@@ -8,8 +8,16 @@ import hiplot as hip
 from prediction_ml import DataProcess
 #Python Machine learning package
 from sklearn.ensemble import RandomForestRegressor
-from scipy import stats
+from xgboost.sklearn import XGBRegressor
+from sklearn.linear_model import SGDRegressor
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import BayesianRidge
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.svm import SVR
 
+from scipy import stats
+#from pycaret.regression import *
 import math
 from sklearn.metrics import mean_squared_error
 # get data
@@ -37,6 +45,7 @@ Exp_file_opt = st.radio(
                 "Please select the option for the experiment file",
                 ('Upload a file', 'Run the default'))
 flag=0
+missing=False
 #flag_default=1
 if Exp_file_opt=='Upload a file':
     uploaded_file = st.file_uploader("Please provide an experiment file for analysis")
@@ -49,16 +58,26 @@ if Exp_file_opt=='Upload a file':
         
         if (file_format=='CSV'):
             df_KBS = pd.read_csv(uploaded_file)
+            
         elif(file_format=='Excel'):
             st.write(uploaded_file)
             df_KBS = pd.read_excel(open('Saha_et_al_2020_ERL_Data.xlsx','rb'),sheet_name='Data')
+        #st.write(df_KBS.isnull().sum())
+        if df_KBS.isnull().values.any():
+            missing=True
+            st.write('### Error: Data contain missing values')
+            for column in df_KBS.columns.tolist():
+                if df_KBS[column].isnull().sum(axis = 0)>0:
+                    st.write("Feature", column, "with Nan values within dataset")
+                    #st.write(column)
+                    st.write("Total NaN values:",df_KBS[column].isnull().sum(axis = 0))
 else:
     df_KBS = pd.read_csv("kbs_final_data_interpolate_evi.csv")
     flag=2
 # else:
 #     st.write(" ##Warning!!!Please select one of the two option for experiment files")
 #     df_KBS=pd.DataFrame(data=None)
-if ((flag==1 and  uploaded_file is not None) or flag==2):
+if ((flag==1 and  uploaded_file is not None and missing==False) or flag==2):
     if flag ==2:
         df_KBS['Management']=df_KBS['Treatment1'].str[:2]
         df_KBS=df_KBS[(df_KBS['Ammonium']>0.) & (df_KBS['Nitrate']>0.)]
@@ -70,8 +89,8 @@ if ((flag==1 and  uploaded_file is not None) or flag==2):
                 "medium-high", "high", "extreme"
             ]
         # Initialize the DataProcess class to finalize the data to input into Machine learning algorithm
-        dnew=DataProcess(df_KBS)
-        dnew.bin_prep(bins,labels)
+        #dnew=DataProcess(df_KBS)
+        #dnew.bin_prep(bins,labels)
 
     labels_mpg = df_KBS.select_dtypes(include='float64').columns.tolist()  # feel free to change this
     # st.write(labels_mpg)
@@ -285,37 +304,62 @@ if ((flag==1 and  uploaded_file is not None) or flag==2):
             )
             line
     elif (selection=='Run ML Algorithm'):
+        target = st.selectbox("Please select a target variable for prediction",df_KBS.columns)
+            #st.write(target)
+            
+            #options = st.multiselect( 'Columns to drop', df_KBS.columns.tolist())
+        #size_test= st.sidebar.slider(label='Test size', key='Size',value=0.3, min_value=0.1, max_value=0.9, step=0.1)
+
+        # if flag==2:
+        #     if len(target)>0:
+        #         important = st.multiselect(
+        #         'Select features model building ',
+        #         df_KBS.drop([target],axis=1).columns.tolist(),
+        #         [ 'Ammonium',  'WFPS', 'Nitrate','NDVI'])
+        # else:
+        if len(target)>0:
+            important = st.multiselect(
+            'Select features model building ',
+            df_KBS.drop([target],axis=1).columns.tolist())
         
         with st.form(key='MLmodel'):
-            target=st.text_input('Please provide name for a target variable','')
-            st.write(target)
-            
-            options = st.multiselect( 'Columns to drop', df_KBS.columns.tolist())
-            size_test= st.sidebar.slider(label='Test size', key='Size',value=0.3, min_value=0.1, max_value=0.9, step=0.1)
-
-            if flag==2:
-                if len(target)>0:
-                    important = st.multiselect(
-                    'Select features model building ',
-                    df_KBS.drop([target],axis=1).columns.tolist(),
-                    [ 'Ammonium',  'WFPS', 'Nitrate','NDVI'])
-            else:
-                if len(target)>0:
-                    important = st.multiselect(
-                    'Select features model building ',
-                    df_KBS.drop([target],axis=1).columns.tolist(),
-                    [ 'Ammonium',  'WFPS', 'Nitrate','NDVI'])
-
             mlselect = st.sidebar.selectbox(
                         "Select a ML model", 
                         [ 
-                            "Random Forest"
+                            "Random Forest",
+                            "XGBRegressor",
+                            "SGDRegressor",
+                            "KernelRidge",
+                            "ElasticNet",
+                            "BayesianRidge",
+                            "GradientBoostingRegressor",
+                            "SVR"
                         ]
             )
             
             Ch_para=st.sidebar.checkbox('Change ML Parameters')
             list_ml={}
-            if mlselect == "Random Forest":
+            #target=st.text_input('Please provide name for a target variable','')
+            #target = st.selectbox("Please select a target variable for prediction",df_KBS.columns)
+            #st.write(target)
+            
+            #options = st.multiselect( 'Columns to drop', df_KBS.columns.tolist())
+            size_test= st.sidebar.slider(label='Test size', key='Size',value=0.3, min_value=0.1, max_value=0.9, step=0.1)
+
+            # if flag==2:
+            #     if len(target)>0:
+            #         important = st.multiselect(
+            #         'Select features model building ',
+            #         df_KBS.drop([target],axis=1).columns.tolist(),
+            #         [ 'Ammonium',  'WFPS', 'Nitrate','NDVI'])
+            # else:
+            #     if len(target)>0:
+            #         important = st.multiselect(
+            #         'Select features model building ',
+            #         df_KBS.drop([target],axis=1).columns.tolist())
+
+            
+            if (mlselect == "Random Forest") &(len(target)>0):
                 if Ch_para:
                     num_tree= st.sidebar.slider(label='Number of trees in random forest', key='tSize',value=1000, min_value=100, max_value=10000, step=100)
                     max_features= st.sidebar.slider(label='Number of features to consider at every split ', key='Mfeat',value=2, min_value=1, max_value=len(important), step=1)
@@ -338,7 +382,21 @@ if ((flag==1 and  uploaded_file is not None) or flag==2):
                     max_features=max_features,max_depth= max_depth, min_samples_split=min_samples_split,min_samples_leaf=min_samples_leaf,\
                         bootstrap=bootstrap)
             
-            
+            elif(mlselect =="XGBRegressor"):
+                reg = XGBRegressor()
+            elif(mlselect =="SGDRegressor"):
+                reg = SGDRegressor()
+            elif(mlselect =="KernelRidge"):
+                reg = KernelRidge()
+            elif(mlselect =="ElasticNet"):
+                reg = ElasticNet()
+            elif(mlselect =="BayesianRidge"):
+                reg = BayesianRidge()
+            elif(mlselect =="GradientBoostingRegressor",):
+                reg = GradientBoostingRegressor()
+            elif(mlselect =="SVR"):
+                reg = SVR()
+
             # Split the data into training and testing 
             
 
@@ -359,11 +417,14 @@ if ((flag==1 and  uploaded_file is not None) or flag==2):
         if submit_button:
 
 
-            st.write('### Selected columsn to drop:', options)
+            #st.write('### Selected columsn to drop:', options)
             st.write('### Selected features to run ML:', important)
-            st.write('### Selected ML model details:',{"ML Model":mlselect,"n_estimators":num_tree, "max_features":max_features,\
+            if (mlselect == "Random Forest"):
+                st.write('### Selected ML model details:',{"ML Model":mlselect,"n_estimators":num_tree, "max_features":max_features,\
                         "max_depth":max_depth, "min_samples_split":min_samples_split,"min_samples_leaf":min_samples_leaf,\
                             "bootstrap":bootstrap})
+            else:
+                st.write('### Selected ML model:',{"ML Model":mlselect})
                             
 
             # exp_data().append({"ML Model":mlselect,"n_estimators":num_tree, "max_features":max_features,\
@@ -385,14 +446,16 @@ if ((flag==1 and  uploaded_file is not None) or flag==2):
             
             
         
-            if len(options)>0:
-                df_filter=dp.drop_columns(options)
+            #if len(options)>0:
+            #    df_filter=dp.drop_columns(options)
             #Use Label encoder to convert object or string to numeric values
             df_encode=dp.label_enc()
                 #visualizer = PredictionError(reg)
             
-
+            #if flag==2:
             Xtrain, Xtest, Ytrain, Ytest = dp.split_data(target,testsize=size_test,strat=True,bins=bins,labels=labels)
+           
+
             # Fit the training data to the visualizer
             reg.fit(Xtrain[important], Ytrain[target])
             
@@ -413,56 +476,70 @@ if ((flag==1 and  uploaded_file is not None) or flag==2):
             st.write("p = ",np.round(r_cal[1],5))
             st.write("RMSE = ",np.round(rmse_cal,2))
             #Add data
-            exp_data().append({"Test_size":size_test,"ML Model":mlselect,"n_estimators":num_tree, "max_features":max_features,\
-                    "max_depth":max_depth, "min_samples_split":min_samples_split,"min_samples_leaf":min_samples_leaf,\
-                        "bootstrap":bootstrap,"Feature_list":important ,"R2":np.round(r_square_cal,2),"R":np.round(r_cal[0],2),"p":np.round(r_cal[1],5),\
-                            "RMSE":np.round(rmse_cal,2)})
-            
-            if Plot:
-                col1,col2=st.columns([1,1])
+            if (mlselect == "Random Forest"):
+                exp_data().append({"Test_size":size_test,"ML Model":mlselect,"n_estimators":num_tree, "max_features":max_features,\
+                        "max_depth":max_depth, "min_samples_split":min_samples_split,"min_samples_leaf":min_samples_leaf,\
+                            "bootstrap":bootstrap,"Feature_list":important ,"R2":np.round(r_square_cal,2),"R":np.round(r_cal[0],2),"p":np.round(r_cal[1],5),\
+                                "RMSE":np.round(rmse_cal,2)})
+            else:
 
-                with col1:
-                
+                 exp_data().append({"Test_size":size_test,"ML Model":mlselect,"Feature_list":important ,"R2":np.round(r_square_cal,2),"R":np.round(r_cal[0],2),"p":np.round(r_cal[1],5),\
+                                "RMSE":np.round(rmse_cal,2)})
+            if Plot:
+                if (mlselect == "Random Forest"):
+                    col1,col2=st.columns([1,1])
+                # else:
+                #     col1=st.columns([1])
+
+                    with col1:
+                    
+                        scatter = alt.Chart(df_mpg).properties(width=350).mark_circle(size=100).encode(x='Observed', y='Predicted',
+                        tooltip=important).interactive()
+                        reg_line=alt.Chart(df_mpg).properties(width=350).mark_circle(size=100).encode(x='Observed', y='Predicted',
+                        tooltip=important).transform_regression('Observed','Predicted').mark_line()
+                        scatter+reg_line
+
+
+                    # all_feat_imp_df = pd.DataFrame(data=[tree.feature_importances_ for tree in 
+                    #                          reg],
+                    #                    columns=important)
+
+                    # fig, ax = plt.subplots(figsize=(15, 5))
+                    # (sns.boxplot(data=all_feat_imp_df,ax=ax)
+                    # .set(title='Random Forest'+' '+'Feature Importance Distributions',
+                    #      ylabel='Importance'))
+                    # st.pyplot(fig)
+
+                    #Create arrays from feature importance and feature names
+                    
+                    with col2:
+                        feature_importance = np.array(reg.feature_importances_)
+                        feature_names = np.array(important)
+
+                        #Create a DataFrame using a Dictionary
+                        data={'feature_names':feature_names,'feature_importance':feature_importance}
+                        fi_df = pd.DataFrame(data)
+
+                        #Sort the DataFrame in order decreasing feature importance
+                        fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
+
+                        #Define size of bar plot
+                        fig=plt.figure(figsize=(10,15))
+                        #Plot Searborn bar chart
+                        sns.barplot(x=fi_df['feature_importance'], y=fi_df['feature_names'])
+                        #Add chart labels
+                        plt.title('Random Forest'+' ' + 'FEATURE IMPORTANCE',fontsize=20)
+                        plt.xlabel('')
+                        plt.ylabel('')
+                        plt.tick_params(axis='both', labelsize=20)
+
+                        st.pyplot(fig)
+                else:
                     scatter = alt.Chart(df_mpg).properties(width=350).mark_circle(size=100).encode(x='Observed', y='Predicted',
                     tooltip=important).interactive()
                     reg_line=alt.Chart(df_mpg).properties(width=350).mark_circle(size=100).encode(x='Observed', y='Predicted',
                     tooltip=important).transform_regression('Observed','Predicted').mark_line()
                     scatter+reg_line
-
-
-                # all_feat_imp_df = pd.DataFrame(data=[tree.feature_importances_ for tree in 
-                #                          reg],
-                #                    columns=important)
-
-                # fig, ax = plt.subplots(figsize=(15, 5))
-                # (sns.boxplot(data=all_feat_imp_df,ax=ax)
-                # .set(title='Random Forest'+' '+'Feature Importance Distributions',
-                #      ylabel='Importance'))
-                # st.pyplot(fig)
-
-                #Create arrays from feature importance and feature names
-                with col2:
-                    feature_importance = np.array(reg.feature_importances_)
-                    feature_names = np.array(important)
-
-                    #Create a DataFrame using a Dictionary
-                    data={'feature_names':feature_names,'feature_importance':feature_importance}
-                    fi_df = pd.DataFrame(data)
-
-                    #Sort the DataFrame in order decreasing feature importance
-                    fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
-
-                    #Define size of bar plot
-                    fig=plt.figure(figsize=(10,15))
-                    #Plot Searborn bar chart
-                    sns.barplot(x=fi_df['feature_importance'], y=fi_df['feature_names'])
-                    #Add chart labels
-                    plt.title('Random Forest'+' ' + 'FEATURE IMPORTANCE',fontsize=20)
-                    plt.xlabel('')
-                    plt.ylabel('')
-                    plt.tick_params(axis='both', labelsize=20)
-
-                    st.pyplot(fig)
         
         
                     

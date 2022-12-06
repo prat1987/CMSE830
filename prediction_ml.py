@@ -52,7 +52,7 @@ class DataProcess():
                 le_code.fit(self.data[each].astype(str))
                 self.data[each] = le_code.transform(self.data[each].astype(str))
         return self.data
-    def bin_prep(self, bins,labels):
+    def bin_prep(self, bins,labels,target):
         '''
         The function is used to  classify the target (N2O) values into different bins
         specified by the user.
@@ -69,7 +69,7 @@ class DataProcess():
         '''
 
       
-        binned = pd.cut(self.data['N20'], bins=bins, labels=labels)
+        binned = pd.cut(self.data[target], bins=bins, labels=labels)
         # ADD this category in the dataframe
         self.data['bins'] = binned
 
@@ -124,7 +124,7 @@ class DataProcess():
             # Stratify the data based on bin value
             if (len(labels)== (len(bins)-1))\
                 &(len(bins)>0):
-                self.bin_prep(bins,labels)
+                self.bin_prep(bins,labels,target)
                 ys_t = np.array(self.data['bins'])
                 # axis 1 refers to the columns
                 kbs_labels = pd.DataFrame(data=self.data[target], columns=[target])
