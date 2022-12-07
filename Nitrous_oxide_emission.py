@@ -20,12 +20,44 @@ from scipy import stats
 #from pycaret.regression import *
 import math
 from sklearn.metrics import mean_squared_error
+import plotly.graph_objects as go
+from missingpy import MissForest
+#import sklearn.neighbors._base
+#sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
 # get data
 #df_KBS = sns.load_dataset("mpg")
 #df_KBS = pd.read_csv("kbs_final_data.csv")
 #df_KBS = pd.read_csv("kbs_final_data_salus_evi_soiltext.csv")
 #tab1, tab2, tab3 = st.tabs(["Cat", "Dog", "Owl"])
+def Null_testing(df_KBS):
+    missing=False
+    if df_KBS.isnull().values.any():
+                missing=True
+                st.write('### Error: Data contain missing values')
+                for column in df_KBS.columns.tolist():
+                    if df_KBS[column].isnull().sum(axis = 0)>0:
+                        st.write("Feature", column, "with Nan values within dataset")
+                        #st.write(column)
+                        st.write("Total NaN values:",df_KBS[column].isnull().sum(axis = 0))
+    return missing     
 
+def category_columns(df):
+        '''
+        The function is used to  encode the string columns of the input dataframe 
+        into numeric to prepare it to feed in ML model.
+
+        Returns:
+        
+            dataframe: A dataframe with encoded columns
+        '''
+        list_columns=[]
+        for each in df.columns.values:
+            encode = ['category', 'object', 'string']
+            if df[each].dtypes in (encode):
+                 list_columns.append(each)
+                
+        return list_columns             
+    
 st.write("""
     # Tool for data analysis and run Machine learning models 
     """)
@@ -38,7 +70,18 @@ st.write('N2O is one of the major greenhouse gases with a global warming potenti
     understand the major factors impacting greenhouse gas (GHG) emissions from agricultural soils.'
 )
 st.write("""Author: Prateek Sharma""")
-tab1, tab2, tab3, tab4 = st.tabs(["Background", "Dataset", "Tool", "Author"])
+font_css = """
+<style>
+button[data-baseweb="tab"] {
+  font-size: 26px;
+}
+</style>
+"""
+st.write(font_css, unsafe_allow_html=True)
+whitespace=9
+listTabs = ["Background", "Dataset", "Tool", "Author"]
+#tab1, tab2, tab3, tab4 = st.tabs(["Background", "Dataset", "Tool", "Author"])
+tab1, tab2, tab3, tab4 = st.tabs([s.center(whitespace,"\u2001") for s in listTabs])
 
 with tab1:
     st.write("""
@@ -115,14 +158,16 @@ with tab3:
                     "Please select the option for the experiment file",
                     ('Upload a file', 'Run the default'))
     flag=0
-    missing=False
+    #missing=False
     #flag_default=1
     if Exp_file_opt=='Upload a file':
-        uploaded_file = st.file_uploader("Please provide an experiment file for analysis")
+        
         flag=1
         file_format = st.radio(
                     "Please select the format for the experiment file",
                     ('CSV', 'Excel'))
+
+        uploaded_file = st.file_uploader("Please provide an experiment file for analysis")
     #df_KBS = pd.read_csv("kbs_final_data_interpolate_evi.csv")
         if uploaded_file is not None:
             
@@ -133,14 +178,52 @@ with tab3:
                 st.write(uploaded_file)
                 df_KBS = pd.read_excel(open('Saha_et_al_2020_ERL_Data.xlsx','rb'),sheet_name='Data')
             #st.write(df_KBS.isnull().sum())
-            if df_KBS.isnull().values.any():
-                missing=True
-                st.write('### Error: Data contain missing values')
-                for column in df_KBS.columns.tolist():
-                    if df_KBS[column].isnull().sum(axis = 0)>0:
-                        st.write("Feature", column, "with Nan values within dataset")
-                        #st.write(column)
-                        st.write("Total NaN values:",df_KBS[column].isnull().sum(axis = 0))
+            missing=Null_testing(df_KBS)
+            with st.form(key='Missing'):
+                if (missing ==True):
+                    Miss_opt = st.radio(
+                    "Please select the option for dealing with missing values",
+                    ('Drop', 'Fill')) 
+                submit_button_miss=st.form_submit_button(label='Submit & Run')
+            if submit_button_miss:
+
+                if Miss_opt=='Drop':
+                    df_KBS=df_KBS.dropna(axis=0)
+                    df_KBS=df_KBS.reset_index(drop=True)
+                    missing=Null_testing(df_KBS)
+                    if (missing==False):
+                        st.write("### Missing values dropped")
+                    else:
+                        st.write("### Still missing values exists")
+
+                    
+
+                        
+                else:
+                    labels_mpg = df_KBS.select_dtypes(include='float64').columns.tolist()
+                    label_cat=category_columns(df_KBS)
+                    imputer = MissForest(random_state = 500)
+                    df_imputer=imputer.fit_transform(df_KBS[labels_mpg])
+                    df_impute = pd.DataFrame(data = df_imputer,    
+                                                columns =labels_mpg )
+                    df_impute_com=pd.concat([df_impute,df_KBS[label_cat]],axis=1)
+                    missing=Null_testing(df_impute_com)
+                    if (missing==False):
+                        st.write("### Missing values Filled using MissForest imputer ")
+                        df_KBS=df_impute_com
+                    else:
+                        st.write("### Still missing values exists")
+            
+
+               
+            # if df_KBS.isnull().values.any():
+            #     missing=True
+            #     st.write('### Error: Data contain missing values')
+            #     for column in df_KBS.columns.tolist():
+            #         if df_KBS[column].isnull().sum(axis = 0)>0:
+            #             st.write("Feature", column, "with Nan values within dataset")
+            #             #st.write(column)
+            #             st.write("Total NaN values:",df_KBS[column].isnull().sum(axis = 0))
     else:
         df_KBS = pd.read_csv("kbs_final_data_interpolate_evi.csv")
         flag=2
@@ -205,96 +288,44 @@ with tab3:
             ]
         )
         if (selection=='Data analysis'):
+            with st.form(key='Plot'):
+                with st.sidebar:
+                    sd = st.sidebar.selectbox(
+                        "Select a Plot", #Drop Down Menu Name
 
-            sd = st.sidebar.selectbox(
-                "Select a Plot", #Drop Down Menu Name
+                        [
+                            "Hi Plot",
+                            'Pairplot',
+                            "Violin Plot", #First option in menu
+                            "box_plot" ,  #Seconf option in menu
+                            "Dist Plot" ,
+                            "lm Plot",
+                            "Joint Plot",
+                            "Line Plot"
 
-                [
-                    "Hi Plot",
-                    'Pairplot',
-                    "Violin Plot", #First option in menu
-                    "box_plot" ,  #Seconf option in menu
-                    "Dist Plot" ,
-                    "lm Plot",
-                    "Joint Plot",
-                    "Line Plot"
-
-                ]
-            )
+                        ]
+                    )
+                    submit_button_plot=st.form_submit_button(label='Plot')
 
 
             # allow user to choose which portion of the data to explore
-
-
-            fig = plt.figure(figsize=(12, 6))
-
-            if sd =='Hi Plot':
-                # just convert it to a streamlit component with `.to_streamlit()` before
-                if (flag==2):
-                    features_sel = st.sidebar.multiselect( 'Select features to plot parallel pairplot', df_KBS.columns.tolist(),
-                    ['N20','Ammonium',  'WFPS', 'Nitrate','NDVI'])
-                else:
-                    features_sel = st.sidebar.multiselect( 'Select features to plot parallel plot', df_KBS.columns.tolist(),labels_mpg)
-                xp=hip.Experiment.from_dataframe(df_KBS[features_sel])
-                ret_val = xp.to_streamlit( key="hip").display()
-
-                #st.markdown("hiplot returned " + json.dumps(ret_val))
-                
-            elif sd=='Pairplot':
-                #fig_all = plt.figure()
+            if sd in ['Hi Plot','Pairplot']:
                 if (flag==2):
                     features_sel = st.sidebar.multiselect( 'Select features to plot pairplot', df_KBS.columns.tolist(),
                     ['Management','Ammonium',  'WFPS', 'Nitrate','NDVI'])
                 else:
                     features_sel = st.sidebar.multiselect( 'Select features to plot pairplot', df_KBS.columns.tolist(),
                     labels_mpg)
-                
-                #labels_mpg.append('Management')
-                hue_in = st.sidebar.selectbox('hue: ', features_sel,index=0)
-                fig_all=sns.pairplot(df_KBS[features_sel], hue=hue_in) 
-                st.pyplot(fig_all)
-
-            elif sd == "Violin Plot":
+                if sd=='Pairplot':
+                    hue_in = st.sidebar.selectbox('hue: ', features_sel,index=0)
+            elif sd in ["Violin Plot", "box_plot"]:
                 x_axis_choice = st.sidebar.selectbox(
                 "x axis",
                 labels_mpg)
                 y_axis_choice = st.sidebar.selectbox(
                 "y axis",
                 df_KBS.columns,index= len(df_KBS.columns.tolist())-1)
-                #hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns)
-            
-                ax=sns.violinplot(x = x_axis_choice, y = y_axis_choice, data =df_KBS)
-
-                plt.ylabel(y_axis_choice, fontsize=20)
-                plt.xlabel(x_axis_choice, fontsize=20)
-                plt.tick_params(axis='both', labelsize=18)
-                plt.legend(loc=(1,.4),fontsize=14,frameon=False)
-                st.pyplot(fig)
-            elif sd == "box_plot":
-                x_axis_choice = st.sidebar.selectbox(
-                "x axis",
-                labels_mpg)
-                y_axis_choice = st.sidebar.selectbox(
-                "y axis",
-                df_KBS.columns,index= len(df_KBS.columns.tolist())-1)
-                #interactive=st.sidebar.checkbox('interactive')
-                
-                box=alt.Chart(df_KBS, width=300, height=300).mark_boxplot().encode(y=y_axis_choice, x=x_axis_choice)
-                box
-            #   x_axis_choice = st.sidebar.selectbox(
-            #     "x axis",
-            #     labels_mpg)
-            #     y_axis_choice = st.sidebar.selectbox(
-            #     "y axis",
-            #     df_KBS.columns,index=2)
-            #     sns.stripplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS)
-            #     plt.ylabel(y_axis_choice, fontsize=14)
-            #     plt.xlabel(x_axis_choice, fontsize=14)
-            #     plt.tick_params(axis='both', labelsize=12)
-            #     plt.legend(loc=(1,.4),fontsize=14,frameon=False)
-            #     st.pyplot(fig)
-            elif sd == "Dist Plot":
-                #sns.distplot(df ,x=x_lbl, y=y_lbl, rug=True, kind='kde',hue=hue_in)
+            elif sd in ["Dist Plot", "lm Plot"]:
                 x_axis_choice = st.sidebar.selectbox(
                 "x axis",
                 labels_mpg)
@@ -305,74 +336,163 @@ with tab3:
                     hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
                 else:
                     hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns.tolist())
-                fig_all=sns.displot(df_KBS, x=x_axis_choice, y=y_axis_choice, hue=hue_in, kind="kde",rug=True)
-                plt.ylabel(y_axis_choice, fontsize=14)
-                plt.xlabel(x_axis_choice, fontsize=14)
-                plt.tick_params(axis='both', labelsize=12)
-                plt.legend(loc=(1,.4),fontsize=14,frameon=False)
-                st.pyplot(fig_all)
-                #sns.lmplot(data=df_KBS, x=x_axis_choice, y= y_axis_choice,hue=hue_in,palette='Dark2',legend=False)
-
-            elif sd =="lm Plot":
+            elif sd in ["Joint Plot", "Line Plot"]:
                 x_axis_choice = st.sidebar.selectbox(
                 "x axis",
                 labels_mpg)
                 y_axis_choice = st.sidebar.selectbox(
                 "y axis",
                 labels_mpg)
-                if (flag==2):
-                    hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
-                else:
-                    hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns.tolist())
-                #hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
-                fig_all=sns.lmplot(data=df_KBS, x=x_axis_choice, y= y_axis_choice,hue=hue_in,palette='Dark2',legend=False)
 
-                # You can use matplotlib to adjust parts of the plot
-                plt.ylabel(y_axis_choice, fontsize=14)
-                plt.xlabel(x_axis_choice, fontsize=14)
-                plt.tick_params(axis='both', labelsize=12)
-                plt.legend(loc=(1,.4),fontsize=14,frameon=False)
-                #sns.jointplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS)
 
-                #sns.displot(df_mpg, x="horsepower", y="mpg", kind="kde", rug=True)
-                st.pyplot(fig_all)
-            elif sd =="Joint Plot":
-                x_axis_choice = st.sidebar.selectbox(
-                "x axis",
-                labels_mpg)
-                y_axis_choice = st.sidebar.selectbox(
-                "y axis",
-                labels_mpg)
-                #hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
-                #hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns)
-                fig_all=sns.jointplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS, kind="reg")
+            fig = plt.figure(figsize=(12, 6))
+            if submit_button_plot:
+                if sd =='Hi Plot':
+                    # # just convert it to a streamlit component with `.to_streamlit()` before
+                    # if (flag==2):
+                    #     features_sel = st.sidebar.multiselect( 'Select features to plot parallel pairplot', df_KBS.columns.tolist(),
+                    #     ['N20','Ammonium',  'WFPS', 'Nitrate','NDVI'])
+                    # else:
+                    #     features_sel = st.sidebar.multiselect( 'Select features to plot parallel plot', df_KBS.columns.tolist(),labels_mpg)
+                    # xp=hip.Experiment.from_dataframe(df_KBS[features_sel])
+                    xp=hip.Experiment.from_dataframe(df_KBS[features_sel])
+                    ret_val = xp.to_streamlit( key="hip").display()
+
+                    #st.markdown("hiplot returned " + json.dumps(ret_val))
+                    
+                elif sd=='Pairplot':
+                    #fig_all = plt.figure()
+                    # if (flag==2):
+                    #     features_sel = st.sidebar.multiselect( 'Select features to plot pairplot', df_KBS.columns.tolist(),
+                    #     ['Management','Ammonium',  'WFPS', 'Nitrate','NDVI'])
+                    # else:
+                    #     features_sel = st.sidebar.multiselect( 'Select features to plot pairplot', df_KBS.columns.tolist(),
+                    #     labels_mpg)
+                    
+                    #labels_mpg.append('Management')
+                    #hue_in = st.sidebar.selectbox('hue: ', features_sel,index=0)
+                    fig_all=sns.pairplot(df_KBS[features_sel], hue=hue_in) 
+                    st.pyplot(fig_all)
+
+                elif sd == "Violin Plot":
+                    # x_axis_choice = st.sidebar.selectbox(
+                    # "x axis",
+                    # labels_mpg)
+                    # y_axis_choice = st.sidebar.selectbox(
+                    # "y axis",
+                    # df_KBS.columns,index= len(df_KBS.columns.tolist())-1)
+                    #hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns)
                 
+                    ax=sns.violinplot(x = x_axis_choice, y = y_axis_choice, data =df_KBS)
 
-                # You can use matplotlib to adjust parts of the plot
-                plt.ylabel(y_axis_choice, fontsize=14)
-                plt.xlabel(x_axis_choice, fontsize=14)
-                plt.tick_params(axis='both', labelsize=12)
-                plt.legend(loc=(1,.4),fontsize=14,frameon=False)
-                #sns.jointplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS)
+                    plt.ylabel(y_axis_choice, fontsize=20)
+                    plt.xlabel(x_axis_choice, fontsize=20)
+                    plt.tick_params(axis='both', labelsize=18)
+                    plt.legend(loc=(1,.4),fontsize=14,frameon=False)
+                    st.pyplot(fig)
+                elif sd == "box_plot":
+                    # x_axis_choice = st.sidebar.selectbox(
+                    # "x axis",
+                    # labels_mpg)
+                    # y_axis_choice = st.sidebar.selectbox(
+                    # "y axis",
+                    # df_KBS.columns,index= len(df_KBS.columns.tolist())-1)
+                    #interactive=st.sidebar.checkbox('interactive')
+                    
+                    box=alt.Chart(df_KBS, width=300, height=300).mark_boxplot().encode(y=y_axis_choice, x=x_axis_choice)
+                    box
+                #   x_axis_choice = st.sidebar.selectbox(
+                #     "x axis",
+                #     labels_mpg)
+                #     y_axis_choice = st.sidebar.selectbox(
+                #     "y axis",
+                #     df_KBS.columns,index=2)
+                #     sns.stripplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS)
+                #     plt.ylabel(y_axis_choice, fontsize=14)
+                #     plt.xlabel(x_axis_choice, fontsize=14)
+                #     plt.tick_params(axis='both', labelsize=12)
+                #     plt.legend(loc=(1,.4),fontsize=14,frameon=False)
+                #     st.pyplot(fig)
+                elif sd == "Dist Plot":
+                    #sns.distplot(df ,x=x_lbl, y=y_lbl, rug=True, kind='kde',hue=hue_in)
+                    # x_axis_choice = st.sidebar.selectbox(
+                    # "x axis",
+                    # labels_mpg)
+                    # y_axis_choice = st.sidebar.selectbox(
+                    # "y axis",
+                    # labels_mpg,index=1)
+                    # if (flag==2):
+                    #     hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
+                    # else:
+                    #     hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns.tolist())
+                    fig_all=sns.displot(df_KBS, x=x_axis_choice, y=y_axis_choice, hue=hue_in, kind="kde",rug=True)
+                    plt.ylabel(y_axis_choice, fontsize=14)
+                    plt.xlabel(x_axis_choice, fontsize=14)
+                    plt.tick_params(axis='both', labelsize=12)
+                    plt.legend(loc=(1,.4),fontsize=14,frameon=False)
+                    st.pyplot(fig_all)
+                    #sns.lmplot(data=df_KBS, x=x_axis_choice, y= y_axis_choice,hue=hue_in,palette='Dark2',legend=False)
 
-                #sns.displot(df_mpg, x="horsepower", y="mpg", kind="kde", rug=True)
-                st.pyplot(fig_all)
-            elif sd=="Line Plot":
-                x_axis_choice = st.sidebar.selectbox(
-                "x axis",
-                df_KBS.columns)
-                y_axis_choice = st.sidebar.selectbox(
-                "y axis",
-                labels_mpg,index=1)
-                #hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns,index= len(df_KBS.columns.tolist())-1)
-                base = alt.Chart(df_KBS).properties(width=550)
+                elif sd =="lm Plot":
+                    # x_axis_choice = st.sidebar.selectbox(
+                    # "x axis",
+                    # labels_mpg)
+                    # y_axis_choice = st.sidebar.selectbox(
+                    # "y axis",
+                    # labels_mpg)
+                    # if (flag==2):
+                    #     hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
+                    # else:
+                    #     hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns.tolist())
+                    #hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
+                    fig_all=sns.lmplot(data=df_KBS, x=x_axis_choice, y= y_axis_choice,hue=hue_in,palette='Dark2',legend=False)
 
-                line = base.mark_line().encode(
-                    x= x_axis_choice  ,
-                    y=y_axis_choice,
-                    #color=hue_in
-                )
-                line
+                    # You can use matplotlib to adjust parts of the plot
+                    plt.ylabel(y_axis_choice, fontsize=14)
+                    plt.xlabel(x_axis_choice, fontsize=14)
+                    plt.tick_params(axis='both', labelsize=12)
+                    plt.legend(loc=(1,.4),fontsize=14,frameon=False)
+                    #sns.jointplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS)
+
+                    #sns.displot(df_mpg, x="horsepower", y="mpg", kind="kde", rug=True)
+                    st.pyplot(fig_all)
+                elif sd =="Joint Plot":
+                    # x_axis_choice = st.sidebar.selectbox(
+                    # "x axis",
+                    # labels_mpg)
+                    # y_axis_choice = st.sidebar.selectbox(
+                    # "y axis",
+                    # labels_mpg)
+                    #hue_in = st.sidebar.selectbox('hue: ', ['Crop','Management','Stability','bins'])
+                    #hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns)
+                    fig_all=sns.jointplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS, kind="reg")
+                    
+
+                    # You can use matplotlib to adjust parts of the plot
+                    plt.ylabel(y_axis_choice, fontsize=14)
+                    plt.xlabel(x_axis_choice, fontsize=14)
+                    plt.tick_params(axis='both', labelsize=12)
+                    plt.legend(loc=(1,.4),fontsize=14,frameon=False)
+                    #sns.jointplot(x = x_axis_choice, y = y_axis_choice, data = df_KBS)
+
+                    #sns.displot(df_mpg, x="horsepower", y="mpg", kind="kde", rug=True)
+                    st.pyplot(fig_all)
+                elif sd=="Line Plot":
+                    # x_axis_choice = st.sidebar.selectbox(
+                    # "x axis",
+                    # df_KBS.columns)
+                    # y_axis_choice = st.sidebar.selectbox(
+                    # "y axis",
+                    # labels_mpg,index=1)
+                    #hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns,index= len(df_KBS.columns.tolist())-1)
+                    base = alt.Chart(df_KBS).properties(width=550)
+
+                    line = base.mark_line().encode(
+                        x= x_axis_choice  ,
+                        y=y_axis_choice,
+                        #color=hue_in
+                    )
+                    line
         elif (selection=='Run ML Algorithm'):
             target = st.selectbox("Please select a target variable for prediction",df_KBS.columns)
                 #st.write(target)
@@ -646,14 +766,62 @@ with tab3:
                     
 with tab4:
         embed_component= {'linkedin':"""<script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
-         <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="light" data-type="VERTICAL" data-vanity="prateek-sharma-b581841b6" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/prateek-sharma-b581841b6?trk=profile-badge">Prateek Sharma</a></div>""", 'medium':"""<div style="overflow-y: scroll; height:500px;"> <div id="retainable-rss-embed"""}
-       
-        
+         <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="light" data-type="VERTICAL" data-vanity="prateek-sharma-b581841b6" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/prateek-sharma-b581841b6?trk=profile-badge"</a></div>""", 'medium':"""<div style="overflow-y: scroll; height:500px;"> <div id="retainable-rss-embed"""}
+        edu = [['M.S','Atmospheric Sciences','2017','UIUC','3.6 GPA'],['M.Tech','Atmospheric & Oceanic Sciences','2016','IIT Delhi', '8.9 CGPA'],['B.Tech','ME','2011','YMCA Faridabad','6.9 CGPA']]
+
+        info = {'name':'Prateek Sharma', 
+        'Brief':'Prateek Sharma is a PhD student at Michigan State University in Basso Lab. His reaserch interest lies in combining \
+                process-based models with data science and machine learning tools to solve climate change problems ; \
+                specifically related to  agricultural sector. Experienced in developing data-driven solutions/tools for quantifying GHGs in row-crop system', \
+                'Mobile':'2176938571',
+                'Email':'sharm165@msu.edu',
+                'City':'East Lansing, Michigan',
+                'edu':pd.DataFrame(edu,columns=['Qualification','Stream','Year','Institute','Score']),
+                'skills':['Data Science','Pyhton','Fortran','ML','Streamlit'],
+                'achievements':[],
+                'publication_url':'https://medium.com/data-science-in-your-pocket/tagged/beginner'}
+
+        skill_col_size=5
         st.write("""## Author: Prateek Sharma""")   
         col1, col2= st.columns([1,1])
 
         with col1:
-            st.write("Check out my linkedin profile: Click on View profile")
+            #st.write("Check out my linkedin profile: Click on View profile")
             components.html(embed_component['linkedin'],height=310)
+        with col2:
+            st.write("***Summary***")
+            st.write(info['Brief'])
+            st.caption('Want to connect?')
+            st.write('📧: sharm165@msu.edu')
+
+        st.subheader('Skills & Tools ⚒️')
+        def skill_tab():
+            rows,cols = len(info['skills'])//skill_col_size,skill_col_size
+            skills = iter(info['skills'])
+            if len(info['skills'])%skill_col_size!=0:
+                rows+=1
+            for x in range(rows):
+                columns = st.columns(skill_col_size)
+                for index_ in range(skill_col_size):
+                    try:
+                        columns[index_].button(next(skills))
+                    except:
+                        break
+        with st.spinner(text="Loading section..."):
+            skill_tab()
+
+
+        st.subheader('Education 📖')
+
+        fig = go.Figure(data=[go.Table(
+            header=dict(values=list(info['edu'].columns),
+                        fill_color='paleturquoise',
+                        align='left',height=65,font_size=20),
+            cells=dict(values=info['edu'].transpose().values.tolist(),
+                    fill_color='lavender',
+                    align='left',height=40,font_size=15))])
+
+        #fig.update_layout(width=750, height=2000)
+        st.plotly_chart(fig)
 
         
