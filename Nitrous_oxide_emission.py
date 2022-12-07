@@ -24,9 +24,10 @@ import plotly.graph_objects as go
 
 import sys
 import sklearn.neighbors._base
+sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
 from missingpy import MissForest
 import base64
-sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
+
 # get data
 #df_KBS = sns.load_dataset("mpg")
 #df_KBS = pd.read_csv("kbs_final_data.csv")
