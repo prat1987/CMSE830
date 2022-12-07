@@ -21,7 +21,7 @@ from scipy import stats
 import math
 from sklearn.metrics import mean_squared_error
 import plotly.graph_objects as go
-from missingpy import MissForest
+#from missingpy import MissForest
 import sys
 import sklearn.neighbors._base
 sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
