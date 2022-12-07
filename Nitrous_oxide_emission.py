@@ -21,11 +21,11 @@ from scipy import stats
 import math
 from sklearn.metrics import mean_squared_error
 import plotly.graph_objects as go
-#from missingpy import MissForest
+from missingpy import MissForest
 import sys
-#import sklearn.neighbors._base
+import sklearn.neighbors._base
 import base64
-#sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
+sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
 # get data
 #df_KBS = sns.load_dataset("mpg")
 #df_KBS = pd.read_csv("kbs_final_data.csv")
@@ -201,20 +201,20 @@ with tab3:
                     
 
                         
-                else:
-                    labels_mpg = df_KBS.select_dtypes(include='float64').columns.tolist()
-                    label_cat=category_columns(df_KBS)
-                    imputer = MissForest(random_state = 500)
-                    df_imputer=imputer.fit_transform(df_KBS[labels_mpg])
-                    df_impute = pd.DataFrame(data = df_imputer,    
-                                                columns =labels_mpg )
-                    df_impute_com=pd.concat([df_impute,df_KBS[label_cat]],axis=1)
-                    missing=Null_testing(df_impute_com)
-                    if (missing==False):
-                        st.write("### Missing values Filled using MissForest imputer ")
-                        df_KBS=df_impute_com
                     else:
-                        st.write("### Still missing values exists")
+                        labels_mpg = df_KBS.select_dtypes(include='float64').columns.tolist()
+                        label_cat=category_columns(df_KBS)
+                        imputer = MissForest(random_state = 500)
+                        df_imputer=imputer.fit_transform(df_KBS[labels_mpg])
+                        df_impute = pd.DataFrame(data = df_imputer,    
+                                                    columns =labels_mpg )
+                        df_impute_com=pd.concat([df_impute,df_KBS[label_cat]],axis=1)
+                        missing=Null_testing(df_impute_com)
+                        if (missing==False):
+                            st.write("### Missing values Filled using MissForest imputer ")
+                            df_KBS=df_impute_com
+                        else:
+                            st.write("### Still missing values exists")
             
 
                
