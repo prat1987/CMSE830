@@ -33,6 +33,7 @@ import base64
 #df_KBS = pd.read_csv("kbs_final_data.csv")
 #df_KBS = pd.read_csv("kbs_final_data_salus_evi_soiltext.csv")
 #tab1, tab2, tab3 = st.tabs(["Cat", "Dog", "Owl"])
+#@st.cache(allow_output_mutation=True)
 def Null_testing(df_KBS):
     missing=False
     if df_KBS.isnull().values.any():
@@ -77,15 +78,15 @@ st.write("""Author: Prateek Sharma""")
 font_css = """
 <style>
 button[data-baseweb="tab"] {
-  font-size: 26px;
+  font-size: 24px;
 }
 </style>
 """
 st.write(font_css, unsafe_allow_html=True)
 whitespace=9
-listTabs = ["Background", "Dataset", "Tool", "Author"]
+listTabs = ["Background", "Dataset", "Tool guide","Tool", "Author"]
 #tab1, tab2, tab3, tab4 = st.tabs(["Background", "Dataset", "Tool", "Author"])
-tab1, tab2, tab3, tab4 = st.tabs([s.center(whitespace,"\u2001") for s in listTabs])
+tab1, tab2, tab3, tab4, tab5 = st.tabs([s.center(whitespace,"\u2001") for s in listTabs])
 
 with tab1:
     st.write("""
@@ -158,9 +159,41 @@ with tab2:
     link = '[MCSE KBS LTER experiment](https://lter.kbs.msu.edu/datatables)'
     st.markdown(link, unsafe_allow_html=True)
 with tab3:
+    st.write('# Tool guide')
+    st.image('./guide_1.png')
+    st.write('When you visit this app first page will be like the one that you see above. On the main page you have two options:')
+    st.write("1. Run default \n","2. Upload a file")
+
+    st.write("First,we will discuss the default option")
+    st.write("###### Default option")
+
+    st.write("If you check the sidebar:")
+    st.write("First, you select the option between")
+    st.write("1. Data analysis \n","2. Run ML algorithm")
+    st.write("###### 1. Data Analysis")
+    st.image('./guide_8.png')
+    st.write("Second, you have option where you have several plot option available as you can see below")
+    st.image('./guide_9.png')
+    st.write("Third, you can select features to plot (i.e., Nitratem WFPS). These options will be different based on plot type.")   
+    st.image('./guide_2.png')
+    st.image('./guide_3.png')
+    st.write("###### 2. Run ML models")
+    st.write("For running mL models first you need to select the ML algorithm from the available models in sidebar. Second, on the main page you have to select \
+         the target variable which you want to predict. Third, you need to select the features for ML algorithm. You have a otion of plot check box, if it is checked it will plot otherwise it will show \
+            only results matrix.")
+    st.image('./guide_6.png')
+    st.write("Once you configure your model and hit Submit & Run button, the app will display the features and model hyperparameter as directories. Then in Result section user will see the R2, R, RMSE, and \
+        plots. ")
+    st.image('./guide_5.png')
+    st.image('./guide_4.png')
+    st.write(" User has a option on playing with the hyperparameter of the ML model (until this point only available for Random Forest ML), \
+        if you check the Change ML Parameters in sidebar you will see the hyperparameter for ML in sidebar (see below)")
+    #st.image('./guide_6.png')
+    st.image('./guide_7.png')
+with tab4:
     Exp_file_opt = st.radio(
                     "Please select the option for the experiment file",
-                    ('Upload a file', 'Run the default'))
+                    ( 'Run the default','Upload a file'))
     flag=0
     #missing=False
     #flag_default=1
@@ -774,7 +807,7 @@ with tab3:
                 df=pd.DataFrame(exp_data())
                 st.write(df[df.RMSE == df.RMSE.min()])
                     
-with tab4:
+with tab5:
         embed_component= {'linkedin':"""<script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
          <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="light" data-type="VERTICAL" data-vanity="prateek-sharma-b581841b6" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/prateek-sharma-b581841b6?trk=profile-badge"</a></div>""", 'medium':"""<div style="overflow-y: scroll; height:500px;"> <div id="retainable-rss-embed"""}
         edu = [['M.S','Atmospheric Sciences','2017','UIUC','3.6 GPA'],['M.Tech','Atmospheric & Oceanic Sciences','2016','IIT Delhi', '8.9 CGPA'],['B.Tech','ME','2011','YMCA Faridabad','6.9 CGPA']]
