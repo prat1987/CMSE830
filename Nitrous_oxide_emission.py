@@ -180,22 +180,22 @@ with tab3:
                 df_KBS = pd.read_excel(open('Saha_et_al_2020_ERL_Data.xlsx','rb'),sheet_name='Data')
             #st.write(df_KBS.isnull().sum())
             missing=Null_testing(df_KBS)
-            with st.form(key='Missing'):
-                if (missing ==True):
+            if (missing ==True):
+                with st.form(key='Missing'):
                     Miss_opt = st.radio(
                     "Please select the option for dealing with missing values",
                     ('Drop', 'Fill')) 
-                submit_button_miss=st.form_submit_button(label='Submit & Run')
-            if submit_button_miss:
+                    submit_button_miss=st.form_submit_button(label='Submit')
+                if submit_button_miss:
 
-                if Miss_opt=='Drop':
-                    df_KBS=df_KBS.dropna(axis=0)
-                    df_KBS=df_KBS.reset_index(drop=True)
-                    missing=Null_testing(df_KBS)
-                    if (missing==False):
-                        st.write("### Missing values dropped")
-                    else:
-                        st.write("### Still missing values exists")
+                    if Miss_opt=='Drop':
+                        df_KBS=df_KBS.dropna(axis=0)
+                        df_KBS=df_KBS.reset_index(drop=True)
+                        missing=Null_testing(df_KBS)
+                        if (missing==False):
+                            st.write("### Missing values dropped")
+                        else:
+                            st.write("### Still missing values exists")
 
                     
 
@@ -312,10 +312,10 @@ with tab3:
             # allow user to choose which portion of the data to explore
             if sd in ['Hi Plot','Pairplot']:
                 if (flag==2):
-                    features_sel = st.sidebar.multiselect( 'Select features to plot pairplot', df_KBS.columns.tolist(),
+                    features_sel = st.sidebar.multiselect( 'Select features to plot', df_KBS.columns.tolist(),
                     ['Management','Ammonium',  'WFPS', 'Nitrate','NDVI'])
                 else:
-                    features_sel = st.sidebar.multiselect( 'Select features to plot pairplot', df_KBS.columns.tolist(),
+                    features_sel = st.sidebar.multiselect( 'Select features to plot', df_KBS.columns.tolist(),
                     labels_mpg)
                 if sd=='Pairplot':
                     hue_in = st.sidebar.selectbox('hue: ', features_sel,index=0)
@@ -338,12 +338,18 @@ with tab3:
                 else:
                     hue_in = st.sidebar.selectbox('hue: ', df_KBS.columns.tolist())
             elif sd in ["Joint Plot", "Line Plot"]:
-                x_axis_choice = st.sidebar.selectbox(
-                "x axis",
-                labels_mpg)
                 y_axis_choice = st.sidebar.selectbox(
                 "y axis",
                 labels_mpg)
+                if sd =="Line Plot":
+                    x_axis_choice = st.sidebar.selectbox(
+                    "x axis",
+                    df_KBS.columns.tolist())
+                else:
+                    x_axis_choice = st.sidebar.selectbox(
+                    "x axis",
+                    labels_mpg)
+                    
 
 
             fig = plt.figure(figsize=(12, 6))
