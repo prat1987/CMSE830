@@ -23,8 +23,9 @@ from sklearn.metrics import mean_squared_error
 import plotly.graph_objects as go
 #from missingpy import MissForest
 import sys
-import sklearn.neighbors._base
-sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
+#import sklearn.neighbors._base
+import base64
+#sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
 # get data
 #df_KBS = sns.load_dataset("mpg")
 #df_KBS = pd.read_csv("kbs_final_data.csv")
@@ -795,12 +796,16 @@ with tab4:
 
         with col1:
             #st.write("Check out my linkedin profile: Click on View profile")
+            st.image("./Profile_pic.png")
+            link = '[Github repository](https://github.com/prat1987/CMSE830)'
+            st.markdown(link, unsafe_allow_html=True)
             components.html(embed_component['linkedin'],height=310)
         with col2:
             st.write("***Summary***")
             st.write(info['Brief'])
             st.caption('Want to connect?')
             st.write('📧: sharm165@msu.edu')
+            #components.html(embed_component['linkedin'],height=310)
 
         st.subheader('Skills & Tools ⚒️')
         def skill_tab():
