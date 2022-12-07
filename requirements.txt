@@ -10,3 +10,4 @@ scipy==1.8.0
 xgboost==1.6.2
 plotly==5.11.0
 missingpy==0.2.0
+openpyxl==3.0.10
