@@ -132,8 +132,8 @@ with tab2:
 
     ### Dataset: Kellogs Biological Station (KBS) experimental nitrous oxide and other variables dataset
     """)
-    #st.image('./KBS_SITE.png')
-    show_pdf('./current-kbs-lter-msce-plot-map.pdf')
+    st.image('./current-kbs-lter-msce-plot-map.jpg')
+    #show_pdf('./current-kbs-lter-msce-plot-map.pdf')
 
     st.write("""
 
@@ -769,7 +769,8 @@ with tab4:
         embed_component= {'linkedin':"""<script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
          <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="light" data-type="VERTICAL" data-vanity="prateek-sharma-b581841b6" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/prateek-sharma-b581841b6?trk=profile-badge"</a></div>""", 'medium':"""<div style="overflow-y: scroll; height:500px;"> <div id="retainable-rss-embed"""}
         edu = [['M.S','Atmospheric Sciences','2017','UIUC','3.6 GPA'],['M.Tech','Atmospheric & Oceanic Sciences','2016','IIT Delhi', '8.9 CGPA'],['B.Tech','ME','2011','YMCA Faridabad','6.9 CGPA']]
-
+        #<div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="light" data-type="VERTICAL" data-vanity="prateek-sharma-b581841b6" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/prateek-sharma-b581841b6?trk=profile-badge">Prateek Sharma</a></div>
+              
         info = {'name':'Prateek Sharma', 
         'Brief':'Prateek Sharma is a PhD student at Michigan State University in Basso Lab. His reaserch interest lies in combining \
                 process-based models with data science and machine learning tools to solve climate change problems ; \
