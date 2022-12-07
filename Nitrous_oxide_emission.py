@@ -22,8 +22,9 @@ import math
 from sklearn.metrics import mean_squared_error
 import plotly.graph_objects as go
 from missingpy import MissForest
-#import sklearn.neighbors._base
-#sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
+import sys
+import sklearn.neighbors._base
+sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
 # get data
 #df_KBS = sns.load_dataset("mpg")
 #df_KBS = pd.read_csv("kbs_final_data.csv")
