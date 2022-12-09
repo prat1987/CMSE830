@@ -82,6 +82,16 @@ button[data-baseweb="tab"] {
 }
 </style>
 """
+st.markdown(
+    """ <style>
+            div[role="radiogroup"] >  :first-child{
+                display: none !important;
+            }
+        </style>
+        """,
+    unsafe_allow_html=True
+)
+
 st.write(font_css, unsafe_allow_html=True)
 whitespace=9
 listTabs = ["Background", "Dataset", "Tool guide","Tool", "Author"]
@@ -193,7 +203,7 @@ with tab3:
 with tab4:
     Exp_file_opt = st.radio(
                     "Please select the option for the experiment file",
-                    ( 'Run the default','Upload a file'))
+                    ( 'Dummy','Upload a file','Run the default'))
     flag=0
     #missing=False
     #flag_default=1
@@ -202,7 +212,7 @@ with tab4:
         flag=1
         file_format = st.radio(
                     "Please select the format for the experiment file",
-                    ('CSV', 'Excel'))
+                    ('Dummy','CSV', 'Excel'))
 
         uploaded_file = st.file_uploader("Please provide an experiment file for analysis")
     #df_KBS = pd.read_csv("kbs_final_data_interpolate_evi.csv")
@@ -261,7 +271,7 @@ with tab4:
             #             st.write("Feature", column, "with Nan values within dataset")
             #             #st.write(column)
             #             st.write("Total NaN values:",df_KBS[column].isnull().sum(axis = 0))
-    else:
+    elif Exp_file_opt=='Run the default':
         df_KBS = pd.read_csv("kbs_final_data_interpolate_evi.csv")
         flag=2
     # else:
