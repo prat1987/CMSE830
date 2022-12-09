@@ -25,7 +25,7 @@ import plotly.graph_objects as go
 import sys
 import sklearn.neighbors._base
 sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
-from missingpy import MissForest
+#from missingpy import MissForest
 import base64
 
 # get data
