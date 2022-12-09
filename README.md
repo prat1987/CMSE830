@@ -12,7 +12,6 @@
     more than carbon dioxide (CO2) for a 100-year time scale. This web app will let the user 
     explore the relationship between several variables measured and N2O emissions for a experiment using visualization and ML models which will help them to 
     understand the major factors impacting greenhouse gas (GHG) emissions from agricultural soil
-![Alt text](https://gitlab.msu.edu/sharm165/geotoolvegdyn/uploads/c567fc9e660d72d032b3932cbcd99a75/ML_work.jpg)
 
 
 
