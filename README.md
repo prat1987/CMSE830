@@ -19,4 +19,4 @@
 ## App link
 
 
-https://prat1987-cmse830-nitrous-oxide-emission-2bjohe.streamlit.app/¶
+https://prat1987-cmse830-nitrous-oxide-emission-2bjohe.streamlit.app
