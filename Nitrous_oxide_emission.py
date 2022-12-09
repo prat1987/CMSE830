@@ -103,7 +103,7 @@ with tab1:
 
     ### Background: Nitrous oxide (N2O)
     """)
-    st.image('./n2o_emission_copy.jpg')
+    st.image('./images/n2o_emission_copy.jpg')
     st.write('N2O emissions from soils are primarily \
     produced during two microbial-driven biological processes,nitrification and denitrification.\
     Nitrification is the aerobic microbial oxidation, in \
@@ -119,7 +119,7 @@ with tab1:
 
     ##### Global budget Nitrous oxide (N2O)
     """)
-    st.image('./N2O_budget.jpg')
+    st.image('./images/N2O_budget.jpg')
     st.markdown('**Source: Global nitrous oxide budget 2007-16. Adopted from Tian et al  2020.**')
     link = '[Tian et al. 2020](https://www.nature.com/articles/s41586-020-2780-0)'
     st.markdown(link, unsafe_allow_html=True)
@@ -146,7 +146,7 @@ with tab2:
 
     ### Dataset: Kellogs Biological Station (KBS) experimental nitrous oxide and other variables dataset
     """)
-    st.image('./current-kbs-lter-msce-plot-map.jpg')
+    st.image('./images/current-kbs-lter-msce-plot-map.jpg')
     #show_pdf('./current-kbs-lter-msce-plot-map.pdf')
 
     st.write("""
@@ -170,7 +170,7 @@ with tab2:
     st.markdown(link, unsafe_allow_html=True)
 with tab3:
     st.write('# Tool guide')
-    st.image('./guide_1.png')
+    st.image('./images/guide_1.png')
     st.write('When you visit this app first page will be like the one that you see above. On the main page you have two options:')
     st.write("1. Run default \n","2. Upload a file")
 
@@ -181,25 +181,25 @@ with tab3:
     st.write("First, you select the option between")
     st.write("1. Data analysis \n","2. Run ML algorithm")
     st.write("###### 1. Data Analysis")
-    st.image('./guide_8.png')
+    st.image('./images/guide_8.png')
     st.write("Second, you have option where you have several plot option available as you can see below")
-    st.image('./guide_9.png')
+    st.image('./images/guide_9.png')
     st.write("Third, you can select features to plot (i.e., Nitratem WFPS). These options will be different based on plot type.")   
-    st.image('./guide_2.png')
-    st.image('./guide_3.png')
+    st.image('./images/guide_2.png')
+    st.image('./images/guide_3.png')
     st.write("###### 2. Run ML models")
     st.write("For running mL models first you need to select the ML algorithm from the available models in sidebar. Second, on the main page you have to select \
          the target variable which you want to predict. Third, you need to select the features for ML algorithm. You have a otion of plot check box, if it is checked it will plot otherwise it will show \
             only results matrix.")
-    st.image('./guide_6.png')
+    st.image('./images/guide_6.png')
     st.write("Once you configure your model and hit Submit & Run button, the app will display the features and model hyperparameter as directories. Then in Result section user will see the R2, R, RMSE, and \
         plots. ")
-    st.image('./guide_5.png')
-    st.image('./guide_4.png')
+    st.image('./images/guide_5.png')
+    st.image('./images/guide_4.png')
     st.write(" User has a option on playing with the hyperparameter of the ML model (until this point only available for Random Forest ML), \
         if you check the Change ML Parameters in sidebar you will see the hyperparameter for ML in sidebar (see below)")
     #st.image('./guide_6.png')
-    st.image('./guide_7.png')
+    st.image('./images/guide_7.png')
 with tab4:
     Exp_file_opt = st.radio(
                     "Please select the option for the experiment file",
@@ -272,7 +272,7 @@ with tab4:
             #             #st.write(column)
             #             st.write("Total NaN values:",df_KBS[column].isnull().sum(axis = 0))
     elif Exp_file_opt=='Run the default':
-        df_KBS = pd.read_csv("kbs_final_data_interpolate_evi.csv")
+        df_KBS = pd.read_csv("./data/kbs_final_data_interpolate_evi.csv")
         flag=2
     # else:
     #     st.write(" ##Warning!!!Please select one of the two option for experiment files")
@@ -841,7 +841,7 @@ with tab5:
 
         with col1:
             #st.write("Check out my linkedin profile: Click on View profile")
-            st.image("./Profile_pic.png")
+            st.image("./images/Profile_pic.png")
             link = '[Github repository](https://github.com/prat1987/CMSE830)'
             st.markdown(link, unsafe_allow_html=True)
             components.html(embed_component['linkedin'],height=310)
