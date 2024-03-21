@@ -1,4 +1,4 @@
-# Final Project CMSE 830: N2O ESTIMATION TOOL
+# N2O ESTIMATION TOOL USING AI, PROCESS-BASED MODEL, and REMOTE-SENSING DATA
 
 ![Alt text](https://www.globalcarbonproject.org/nitrousoxidebudget/20/files/NitrousOxideInfographic2020.png)
 
